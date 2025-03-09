@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - /docker/joplindb:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=joplin
+    networks:
+      - joplin_internal
+  app:
+    image: joplin/server:latest
+    depends_on:
+      - db
+    ports:
+      - "22300:22300"
+    restart: unless-stopped
+    env_file:
+      - stack.env
+    networks:
+      - nginx-reverse-proxy_default
+      - joplin_internal
+
+networks:
+  nginx-reverse-proxy_default:
+    name: nginx-reverse-proxy_default
+    external: true
+
+  joplin_internal:
+    driver: bridge
+
+volumes:
+  joplindb:
